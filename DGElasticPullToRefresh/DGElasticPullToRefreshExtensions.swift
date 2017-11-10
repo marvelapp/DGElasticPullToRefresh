@@ -31,20 +31,20 @@ import ObjectiveC
 // MARK: (NSObject) Extension
 
 public extension NSObject {
-    
+
     // MARK: -
     // MARK: Vars
-    
+
     fileprivate struct dg_associatedKeys {
         static var observersArray = "observers"
     }
-    
-    fileprivate var dg_observers: [[String : NSObject]] {
+
+    fileprivate var dg_observers: [[String: NSObject]] {
         get {
-            if let observers = objc_getAssociatedObject(self, &dg_associatedKeys.observersArray) as? [[String : NSObject]] {
+            if let observers = objc_getAssociatedObject(self, &dg_associatedKeys.observersArray) as? [[String: NSObject]] {
                 return observers
             } else {
-                let observers = [[String : NSObject]]()
+                let observers = [[String: NSObject]]()
                 self.dg_observers = observers
                 return observers
             }
@@ -52,83 +52,125 @@ public extension NSObject {
             objc_setAssociatedObject(self, &dg_associatedKeys.observersArray, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
-    
+
     // MARK: -
     // MARK: Methods
-    
+
     public func dg_addObserver(_ observer: NSObject, forKeyPath keyPath: String) {
-        let observerInfo = [keyPath : observer]
-        
+        let observerInfo = [keyPath: observer]
+
         if dg_observers.index(where: { $0 == observerInfo }) == nil {
             dg_observers.append(observerInfo)
             addObserver(observer, forKeyPath: keyPath, options: .new, context: nil)
         }
     }
-    
+
     public func dg_removeObserver(_ observer: NSObject, forKeyPath keyPath: String) {
-        let observerInfo = [keyPath : observer]
-        
+        let observerInfo = [keyPath: observer]
+
         if let index = dg_observers.index(where: { $0 == observerInfo}) {
             dg_observers.remove(at: index)
             removeObserver(observer, forKeyPath: keyPath)
         }
     }
-    
+
 }
 
 // MARK: -
 // MARK: (UIScrollView) Extension
 
 public extension UIScrollView {
-    
-    // MARK: - Vars
+
+    // MARK: -
+    // MARK: Vars
 
     fileprivate struct dg_associatedKeys {
         static var pullToRefreshView = "pullToRefreshView"
     }
 
-    fileprivate var pullToRefreshView: DGElasticPullToRefreshView? {
+    fileprivate var _pullToRefreshView: DGElasticPullToRefreshView? {
         get {
-            return objc_getAssociatedObject(self, &dg_associatedKeys.pullToRefreshView) as? DGElasticPullToRefreshView
-        }
+            if let pullToRefreshView = objc_getAssociatedObject(self, &dg_associatedKeys.pullToRefreshView) as? DGElasticPullToRefreshView {
+                return pullToRefreshView
+            }
 
+            return nil
+        }
         set {
             objc_setAssociatedObject(self, &dg_associatedKeys.pullToRefreshView, newValue, objc_AssociationPolicy.OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
-    
-    // MARK: - Methods (Public)
-    
+
+    var dg_pullToRefreshView: DGElasticPullToRefreshView! {
+        get {
+            if let pullToRefreshView = _pullToRefreshView {
+                return pullToRefreshView
+            } else {
+                let pullToRefreshView = DGElasticPullToRefreshView()
+                _pullToRefreshView = pullToRefreshView
+                return pullToRefreshView
+            }
+        }
+    }
+
+    // MARK: -
+    // MARK: Methods (Public)
+
+    public func dg_pullToRefreshViewExist() -> Bool {
+        if (dg_pullToRefreshView.superview != nil) {
+            return true
+        }
+        return false
+    }
+
+    public func dg_addPullToRefreshWithActionHandler(_ actionHandler: @escaping () -> Void) {
+        dg_addPullToRefreshWithActionHandler(actionHandler, loadingView: nil)
+    }
+
     public func dg_addPullToRefreshWithActionHandler(_ actionHandler: @escaping () -> Void, loadingView: DGElasticPullToRefreshLoadingView?) {
         isMultipleTouchEnabled = false
         panGestureRecognizer.maximumNumberOfTouches = 1
 
-        let pullToRefreshView = DGElasticPullToRefreshView()
-        self.pullToRefreshView = pullToRefreshView
-        pullToRefreshView.actionHandler = actionHandler
-        pullToRefreshView.loadingView = loadingView
-        addSubview(pullToRefreshView)
+        dg_pullToRefreshView.actionHandler = actionHandler
+        dg_pullToRefreshView.loadingView = loadingView
+        addSubview(dg_pullToRefreshView)
 
-        pullToRefreshView.observing = true
+        dg_pullToRefreshView.observing = true
     }
-    
+
     public func dg_removePullToRefresh() {
-        pullToRefreshView?.disassociateDisplayLink()
-        pullToRefreshView?.observing = false
-        pullToRefreshView?.removeFromSuperview()
+
+        dg_pullToRefreshView.observing = false
+        dg_pullToRefreshView.actionHandler = nil
+        dg_pullToRefreshView.removeFromSuperview()
     }
-    
+
     public func dg_setPullToRefreshBackgroundColor(_ color: UIColor) {
-        pullToRefreshView?.backgroundColor = color
+        dg_pullToRefreshView.backgroundColor = color
     }
-    
+
     public func dg_setPullToRefreshFillColor(_ color: UIColor) {
-        pullToRefreshView?.fillColor = color
+        dg_pullToRefreshView.fillColor = color
+        dg_pullToRefreshView.startColor = color
+        dg_pullToRefreshView.endColor = color
     }
-    
+
+    public func dg_setPullToRefreshFillColor(_ color: UIColor, endColor: UIColor) {
+        dg_pullToRefreshView.fillColor = color
+        dg_pullToRefreshView.startColor = color
+        dg_pullToRefreshView.endColor = endColor
+    }
+
     public func dg_stopLoading() {
-        pullToRefreshView?.stopLoading()
+        dg_pullToRefreshView.stopLoading()
     }
+
+    func dg_stopScrollingAnimation() {
+        if let superview = self.superview, let index = superview.subviews.index(where: { $0 == self }) as Int! {
+            superview.insertSubview(self, at: index)
+        }
+    }
+
 }
 
 // MARK: -
