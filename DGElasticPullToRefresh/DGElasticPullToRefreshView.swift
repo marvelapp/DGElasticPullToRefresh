@@ -29,8 +29,7 @@ import UIKit
 // MARK: -
 // MARK: DGElasticPullToRefreshState
 
-public
-enum DGElasticPullToRefreshState: Int {
+@objc public enum DGElasticPullToRefreshState: Int {
     case stopped
     case dragging
     case animatingBounce
@@ -45,7 +44,7 @@ enum DGElasticPullToRefreshState: Int {
 // MARK: -
 // MARK: DGElasticPullToRefreshView
 
-open class DGElasticPullToRefreshView: UIView {
+@objc open class DGElasticPullToRefreshView: UIView {
 
     // MARK: -
     // MARK: Vars
@@ -149,7 +148,7 @@ open class DGElasticPullToRefreshView: UIView {
         NotificationCenter.default.addObserver(self, selector: #selector(DGElasticPullToRefreshView.applicationWillEnterForeground), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
     }
 
-    required public init?(coder aDecoder: NSCoder) {
+    @objc required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -170,7 +169,7 @@ open class DGElasticPullToRefreshView: UIView {
     // MARK: -
     // MARK: Observer
 
-    override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+    @objc override open func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == DGElasticPullToRefreshConstants.KeyPaths.ContentOffset {
 
             if let change = change, let scrollView = scrollView() {
@@ -199,7 +198,7 @@ open class DGElasticPullToRefreshView: UIView {
     // MARK: -
     // MARK: Notifications
 
-    func applicationWillEnterForeground() {
+    @objc func applicationWillEnterForeground() {
         if state == .loading {
             layoutSubviews()
         }
@@ -358,7 +357,7 @@ open class DGElasticPullToRefreshView: UIView {
         displayLink.isPaused = true
     }
 
-    func displayLinkTick() {
+    @objc func displayLinkTick() {
         let width = bounds.width
         var height: CGFloat = 0.0
 
@@ -397,7 +396,7 @@ open class DGElasticPullToRefreshView: UIView {
         loadingView?.maskLayer.path = shapeLayer.path
     }
 
-    override open func layoutSubviews() {
+    @objc override open func layoutSubviews() {
         super.layoutSubviews()
 
         if let scrollView = scrollView(), state != .animatingBounce {
